@@ -162,8 +162,8 @@ xpose_data_nlmixr <- function(obj         = NULL,
   # Output xpose_data
   list(code = NULL, summary = summary, data = data,
        files = NULL, gg_theme = gg_theme, xp_theme = xp_theme,
-       options = list(dir = NULL, quiet = quiet, 
-                      manual_import = NULL)) %>% 
+       options = list(dir = NULL, quiet = quiet,
+                      manual_import = NULL), software = 'nlmixr') %>% 
     structure(class = c('xpose_data', 'uneval'))
 }
 
