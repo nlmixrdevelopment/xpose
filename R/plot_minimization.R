@@ -36,7 +36,11 @@ prm_vs_iteration <- function(xpdb,
   if (missing(subprob)) subprob <- last_file_subprob(xpdb, 'ext', problem)
   if (missing(quiet)) quiet <- xpdb$options$quiet
   if (is.null(facets)) facets <- 'variable'
+  
   x_var <- 'ITERATION'
+  if(xpdb$software=='nlmixr') {
+    x_var <- 'iter'
+  }
   
   xplot_scatter(xpdb = xpdb, group = group, quiet = quiet,
                 opt = data_opt(problem = problem, 

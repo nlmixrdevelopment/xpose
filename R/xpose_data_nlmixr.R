@@ -155,13 +155,25 @@ xpose_data_nlmixr <- function(obj         = NULL,
   #     read_nm_files(quiet = quiet)
   # }
   
+  files <- NULL
+  if(mtype=="saem") {
+    tracedat <- tibble::as.tibble(as.data.frame(obj$par.hist))
+    files <- dplyr::tibble(name = deparse(substitute(obj)),
+                           extension = 'ext',
+                           problem = 1,
+                           subprob = 0,
+                           method = 'saem',
+                           data = list(tracedat),
+                           modified = FALSE)
+  }
+  
   # Label themes
   attr(gg_theme, 'theme') <- as.character(substitute(gg_theme)) 
   attr(xp_theme, 'theme') <- as.character(substitute(xp_theme)) 
   
   # Output xpose_data
   list(code = NULL, summary = summary, data = data,
-       files = NULL, gg_theme = gg_theme, xp_theme = xp_theme,
+       files = files, gg_theme = gg_theme, xp_theme = xp_theme,
        options = list(dir = NULL, quiet = quiet,
                       manual_import = NULL), software = 'nlmixr') %>% 
     structure(class = c('xpose_data', 'uneval'))
