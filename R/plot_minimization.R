@@ -38,8 +38,10 @@ prm_vs_iteration <- function(xpdb,
   if (is.null(facets)) facets <- 'variable'
   
   x_var <- 'ITERATION'
-  if(xpdb$software=='nlmixr') {
-    x_var <- 'iter'
+  if(!is.null(xpdb$software)) {
+    if(xpdb$software=='nlmixr') {
+      x_var <- 'iter'
+    }
   }
   
   xplot_scatter(xpdb = xpdb, group = group, quiet = quiet,

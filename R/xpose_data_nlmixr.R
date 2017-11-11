@@ -26,12 +26,13 @@ xpose_data_nlmixr <- function(obj         = NULL,
   
   
   get_wres <- function(res, dv, pred) {
-    res / (sqrt(cov(dv, pred)))
+    res / (sqrt(stats::cov(dv, pred)))
   }
   
   if (is.null(obj)) {
     stop('Argument `obj` required.', call. = FALSE)
   }
+  
   
   if (missing(quiet)) quiet <- !interactive()
   
@@ -52,6 +53,8 @@ xpose_data_nlmixr <- function(obj         = NULL,
   if (objok == FALSE) {
     stop('Model type currently not supported by xpose.', call. = FALSE)
   }  
+  
+  runname <- deparse(substitute(obj))
   
   if ("nlmixr_nlme" %in% class(obj)) { 
   data <- obj$call[[3]]
@@ -110,7 +113,7 @@ xpose_data_nlmixr <- function(obj         = NULL,
     msg('Skipping summary generation', quiet)
     summary <- NULL
   } else if (software == 'nlmixr') {
-    summary <- summarise_nm_model(obj, '', software, rounding = xp_theme$rounding)
+    summary <- summarise_nlmixr_model(obj, '', software, rounding = xp_theme$rounding, runname=runname)
   }
   
   # The weighted residuals are calculated by dividing the vector of each

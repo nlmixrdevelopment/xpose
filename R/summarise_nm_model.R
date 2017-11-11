@@ -2,9 +2,9 @@ summarise_nm_model <- function(file, model, software, rounding) {
   sum <- dplyr::bind_rows(
     sum_software(software),                    # Software name
     sum_version(model, software),              # Software version
-    sum_file(file, software),                            # Model file
-    sum_run(file, software),                             # Model run (model file without extension)
-    sum_directory(file, software),                       # Model directory
+    sum_file(file),                            # Model file
+    sum_run(file),                             # Model run (model file without extension)
+    sum_directory(file),                       # Model directory
     sum_reference(model, software),            # Reference model
     sum_timestart(model, software),            # Run start time
     sum_timestop(model, software),             # Run stop time
@@ -12,8 +12,8 @@ summarise_nm_model <- function(file, model, software, rounding) {
     sum_label(model, software),                # Model label
     sum_description(model, software),          # Model description
     sum_input_data(model, software),           # Model input data used
-    sum_nobs(model, software, file),                 # Number of observations
-    sum_nind(model, software, file),                 # Number of individuals
+    sum_nobs(model, software),                 # Number of observations
+    sum_nind(model, software),                 # Number of individuals
     sum_nsim(model, software),                 # Number of simulations
     sum_simseed(model, software),              # Simulation seed
     sum_subroutine(model, software),           # Des solver
@@ -26,7 +26,7 @@ summarise_nm_model <- function(file, model, software, rounding) {
     sum_condn(model, software, rounding),      # Condition number
     sum_nesample(model, software),             # Number of esample
     sum_esampleseed(model, software),          # esample seed number
-    sum_ofv(model, software, rounding),                  # Objective function value
+    sum_ofv(model, software),                  # Objective function value
     sum_method(model, software),               # Estimation method or sim
     sum_shk(model, software, 'eps', rounding), # Epsilon shrinkage
     sum_shk(model, software, 'eta', rounding)  # Eta shrinkage
@@ -82,7 +82,7 @@ sum_tpl <- function(label, value) {
   dplyr::tibble(problem = 0,
                 subprob = 0,
                 label   = label,
-                value   = as.character(value))
+                value   = value)
 }
 
 # Software name
@@ -101,39 +101,21 @@ sum_version <- function(model, software) {
     
     sum_tpl('version', stringr::str_match(x$code, 'VERSION\\s+(.+)$')[, 2])
   }
-  if(software == 'nlmixr') {
-    sum_tpl('version', as.character(packageVersion('nlmixr')))
-  }
 }
 
 # Model file name
-sum_file <- function(file, software) {
-  if (software == 'nonmem') {
+sum_file <- function(file) {
   sum_tpl('file', basename(file))
-  }
-  if (software == 'nlmixr') {
-    sum_tpl('file', 'not implemented')
-  }
 }
 
 # Model run name
-sum_run <- function(file, software) {
-  if (software == 'nonmem') {
+sum_run <- function(file) {
   sum_tpl('run', update_extension(basename(file), ''))
-  }
-  if (software == 'nlmixr') {
-    dplyr::tibble(problem = 1, subprob = 0, label = 'run', value = deparse(substitute(file)))
-  }
 }
 
 # Model file directory
-sum_directory <- function(file, software) {
-  if (software == 'nonmem') {  
+sum_directory <- function(file) {
   sum_tpl('dir', dirname(file))
-  }
-  if (software == 'nlmixr') {
-    dplyr::tibble(problem = 1, subprob = 0, label = 'dir', value = getwd())
-  }
 }
 
 # Reference model
@@ -146,9 +128,6 @@ sum_reference <- function(model, software) {
     if (nrow(x) == 0) return(sum_tpl('ref', 'na'))
     
     sum_tpl('ref', stringr::str_match(x$comment, ':\\s*(.+)$')[1, 2]) # Note: only take the first match
-  }
-  if (software == 'nlmixr') {
-    sum_tpl('ref', 'not implemented')
   }
 }
 
@@ -163,9 +142,6 @@ sum_timestart <- function(model, software) {
     
     sum_tpl('timestart', x$code)
   }
-  if (software == 'nlmixr') {
-    sum_tpl('timestart', 'not implemented')
-  }
 }
 
 # Run stop time
@@ -178,9 +154,6 @@ sum_timestop <- function(model, software) {
     if (nrow(x) == 0) return(sum_tpl('timestop', 'na'))
     
     sum_tpl('timestop', x$code)
-  }
-  if (software == 'nlmixr') {
-    sum_tpl('timestop', 'not implemented')
   }
 }
 
@@ -197,9 +170,6 @@ sum_probn <- function(model, software) {
       label   = 'probn',
       value   = as.character(x))
   }
-  if (software == 'nlmixr') {
-    dplyr::tibble(problem = 1, subprob = 0, label = 'probn', value = '1')
-  }
 }
 
 # Model Label
@@ -215,9 +185,6 @@ sum_label <- function(model, software) {
                     label = 'label',
                     value = as.character(.$code)) %>% 
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value'))
-  }
-  if (software == 'nlmixr') {
-    dplyr::tibble(problem = 1, subprob = 0, label = 'label', value = 'na')
   }
 }
 
@@ -241,9 +208,6 @@ sum_description <- function(model, software) {
     }
     sum_tpl('descr', 'na')
   }
-  if (software == 'nlmixr') {
-    sum_tpl('descr', 'not implemented')
-  }
 }
 
 # Input data
@@ -261,13 +225,10 @@ sum_input_data <- function(model, software) {
                     value = stringr::str_match(.$code, '^\\s*?([^\\s]+)\\s+')[, 2]) %>% # Note: only take the first match
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value'))
   }
-  if (software == 'nlmixr') {
-    dplyr::tibble(problem = 1, subprob = 0, label = 'data', value = 'na')
-  }
 }
 
 # Number of observations
-sum_nobs <- function(model, software, file) {
+sum_nobs <- function(model, software) {
   if (software == 'nonmem') {
     x <- model %>% 
       dplyr::filter(.$subroutine == 'lst') %>% 
@@ -281,19 +242,10 @@ sum_nobs <- function(model, software, file) {
                     value = stringr::str_match(.$code, '\\d+')) %>% 
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value'))
   }
-  if (software == 'nlmixr') {
-    if ("nlmixr_nlme" %in% class(file)) { 
-      nobs <- dim(file$fitted)[1]
-    }
-    if (("nlmixr.ui.nlme" %in% class(file)) | ("nlmixr.ui.saem" %in% class(file))) { 
-      nobs <- nrow(file)
-    }
-    dplyr::tibble(problem = 1, subprob = 0, label = 'nobs', value = as.character(nobs))
-  }
 }
 
 # Number of individuals
-sum_nind <- function(model, software, file) {
+sum_nind <- function(model, software) {
   if (software == 'nonmem') {
     x <- model %>% 
       dplyr::filter(.$subroutine == 'lst') %>% 
@@ -306,15 +258,6 @@ sum_nind <- function(model, software, file) {
                     label = 'nind',
                     value = stringr::str_match(.$code, '\\d+')) %>% 
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value'))
-  }
-  if (software == 'nlmixr') {
-    if ("nlmixr_nlme" %in% class(file)) { 
-      nind <- dim(file$fitted)[1]
-    }
-    if (("nlmixr.ui.saem" %in% class(file)) | ("nlmixr.ui.nlme" %in% class(file))) { 
-      nind <- length(unique(file$ID))
-    }
-    dplyr::tibble(problem = 1, subprob = 0, label = 'nind', value = as.character(nind))
   }
 }
 
@@ -333,9 +276,6 @@ sum_nsim <- function(model, software) {
                     value = stringr::str_match(.$code, 'NSUB.*=\\s*(\\d+)')[, 2]) %>% 
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value'))
   }
-  if (software == 'nlmixr') {
-    sum_tpl('nsim', 'not implemented')
-  }
 }
 
 # Simulation seed
@@ -353,9 +293,6 @@ sum_simseed <- function(model, software) {
                     value = stringr::str_match(.$code, '\\((\\d+)\\)')[, 2]) %>% 
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value'))
   }
-  if (software == 'nlmixr') {
-    sum_tpl('simseed', 'na')
-  }
 }
 
 # DES solver
@@ -372,9 +309,6 @@ sum_subroutine <- function(model, software) {
                     label = 'subroutine',
                     value = stringr::str_match(.$code, 'ADVAN(\\d+)')[, 2]) %>% 
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value'))
-  }
-  if (software == 'nlmixr') {
-    dplyr::tibble(problem = 1, subprob = 0, label = 'subroutine', value = 'na')
   }
 }
 
@@ -395,16 +329,6 @@ sum_runtime <- function(model, software) {
                     value = as.ctime(stringr::str_match(.$code, '([\\.\\d]+)')[, 2])) %>% 
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value'))
   }
-  if (software == 'nlmixr') {
-    rt <- 'na'
-    if ("nlmixr.ui.saem" %in% class(file)) { 
-      rt <- file$time$saem
-    }    
-    if ("nlmixr.ui.nlme" %in% class(file)) { 
-      rt <- file$time$nlme
-    }
-    dplyr::tibble(problem = 1, subprob = 0, label = 'runtime', value = as.character(rt))
-  }
 }
 
 # Covariance matrix runtime
@@ -422,16 +346,6 @@ sum_covtime <- function(model, software) {
                     value = as.ctime(stringr::str_match(.$code, '([\\.\\d]+)')[, 2])) %>% 
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value'))
   }
-  if (software == 'nlmixr') {
-    rt <- 'na'
-    if ("nlmixr.ui.saem" %in% class(file)) { 
-      rt <- file$time$covariance
-    }    
-    if ("nlmixr.ui.nlme" %in% class(file)) { 
-      rt <- file$time$covariance
-    }
-    dplyr::tibble(problem = 1, subprob = 0, label = 'covtime', value = as.character(rt))
-  }
 }
 
 # Run termination
@@ -439,25 +353,23 @@ sum_term <- function(model, software) {
   if (software == 'nonmem') {
     x <- dplyr::filter(model, model$subroutine == 'lst')
     start <- which(stringr::str_detect(x$code, stringr::fixed('0MINIMIZATION')))
+    end <- which(stringr::str_detect(x$code, stringr::fixed(" NO. OF FUNCTION EVALUATIONS USED:")))
     
-    if (length(start) == 0) return(sum_tpl('term', 'na'))
+    if (length(start) == 0 | length(end)  == 0 | length(start)!=length(end)) return(sum_tpl('term', 'na'))
     
     x %>% 
-      dplyr::slice(purrr::map(start, ~.:(.+5)) %>% purrr::flatten_int()) %>% 
+      dplyr::slice(purrr::map2(start, end, ~seq(.x,.y)) %>% purrr::flatten_int()) %>% 
       dplyr::group_by_(.dots = 'problem') %>% 
       tidyr::nest() %>% 
       dplyr::mutate(value = purrr::map_chr(.$data, function(y) {
         drop <- min(which(stringr::str_detect(y$code, 'NO. OF')))
         dplyr::slice(.data = y, seq(1, (drop - 1))) %>% 
         {stringr::str_trim(.$code)} %>% 
-          stringr::str_trunc(56) %>% 
+          stringr::str_trunc(width = 56) %>% 
           stringr::str_c(collapse = '\n') %>% 
           stringr::str_replace('0MINIM', 'MINIM')})) %>% 
       dplyr::mutate(subprob = 0, label = 'term') %>% 
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value'))
-  }
-  if (software == 'nlmixr') {
-    dplyr::tibble(problem = 1, subprob = 0, label = 'term', value = 'na')
   }
 }
 
@@ -477,7 +389,7 @@ sum_warnings <- function(model, software) {
       dplyr::mutate(problem = as.numeric(.$problem)) %>% 
       dplyr::filter(!stringr::str_detect(.$code, 'FOR PROBLEM\\s+(\\d+)')) %>% 
       dplyr::mutate(code = stringr::str_trim(.$code)) %>% 
-      dplyr::mutate(code = stringr::str_trunc(.$code, 56)) %>% 
+      dplyr::mutate(code = stringr::str_trunc(.$code, width = 56)) %>% 
       dplyr::distinct_(.dots = c('problem', 'code')) %>%
       dplyr::group_by_(.dots = 'problem') %>% 
       tidyr::nest() %>% 
@@ -485,18 +397,12 @@ sum_warnings <- function(model, software) {
       dplyr::mutate(subprob = 0, label = 'warnings') %>% 
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value'))
   }
-  if (software == 'nlmixr') {
-    dplyr::tibble(problem = 1, subprob = 0, label = 'warnings', value = 'na')
-  }
 }
 
 # Run errors (e.g termination error)
 sum_errors <- function(model, software) {
   if (software == 'nonmem') {
     sum_tpl('errors', 'na') # To be added
-  }
-  if (software == 'nlmixr') {
-    sum_tpl('errors', 'na')
   }
 }
 
@@ -514,9 +420,6 @@ sum_nsig <- function(model, software) {
                     label = 'nsig',
                     value = stringr::str_match(.$code, ':\\s+([\\.\\d]+)')[, 2]) %>% 
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value'))
-  }
-  if (software == 'nlmixr') {
-    dplyr::tibble(problem = 1, subprob = 0, label = 'nsig', value = 'na')
   }
 }
 
@@ -544,9 +447,6 @@ sum_condn <- function(model, software, rounding) {
                         as.character()})) %>% 
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value'))
   }
-  if (software == 'nlmixr') {
-    dplyr::tibble(problem = 1, subprob = 0, label = 'condn', value = 'not implemented')
-  }
 }
 
 # Number of ESAMPLE (i.e. NPDE)
@@ -563,9 +463,6 @@ sum_nesample <- function(model, software) {
                     label = 'nesample',
                     value = stringr::str_match(.$code, 'ESAMPLE\\s*=\\s*(\\d+)')[, 2]) %>% 
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value'))
-  }
-  if (software == 'nlmixr') {
-    sum_tpl('esample', 'na')
   }
 }
 
@@ -584,13 +481,10 @@ sum_esampleseed <- function(model, software) {
                     value = stringr::str_match(.$code, 'SEED\\s*=\\s*(\\d+)')[, 2]) %>% 
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value'))
   }
-  if (software == 'nlmixr') {
-    sum_tpl('esampleseed', 'na')
-  }
 }
 
 # Objective function value
-sum_ofv <- function(model, software, rounding) {
+sum_ofv <- function(model, software) {
   if (software == 'nonmem') {
     x <- model %>% 
       dplyr::filter(.$subroutine == 'lst') %>% 
@@ -604,13 +498,6 @@ sum_ofv <- function(model, software, rounding) {
       dplyr::mutate(subprob = (1:n()) - 1, label = 'ofv') %>% 
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value')) %>% 
       dplyr::ungroup()
-  }
-  if (software == 'nlmixr') {
-    ofv <- 'na'
-    if (("nlmixr.ui.saem" %in% class(file)) | ("nlmixr.ui.nlme" %in% class(file))) { 
-      ofv <- file$objective
-    }    
-    dplyr::tibble(problem = 1, subprob = 0, label = 'ofv', value = as.character(round(ofv, digits=rounding)))
   }
 }
 
@@ -641,16 +528,6 @@ sum_method <- function(model, software) {
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value')) %>% 
       dplyr::ungroup()
   }
-  if (software == 'nlmixr') {
-    est <- 'na'
-    if ("nlmixr.ui.saem" %in% class(file)) { 
-      est <- 'saem'
-    }    
-    if ("nlmixr.ui.nlme" %in% class(file)) { 
-      est <- 'nlme'
-    }
-    dplyr::tibble(problem = 1, subprob = 0, label = 'method', value = est)
-  }
 }
 
 # Epsilon/Eta shrinkage
@@ -660,13 +537,27 @@ sum_shk <- function(model, software, type, rounding) {
     ## Method 3 (worse one)
     x <- model %>% 
       dplyr::filter(.$subroutine == 'lst') %>% 
-      dplyr::filter(stringr::str_detect(.$code, stringr::fixed(stringr::str_c(stringr::str_to_upper(type), 
-                                                                              'shrink', sep = ''))))
+      dplyr::group_by_(.dots = 'problem') %>% 
+      tidyr::nest() %>% 
+      dplyr::mutate(start = purrr::map_int(.x = .$data, .f = function(x) {
+        stringr::str_c(stringr::str_to_upper(type), 'SHRINK[^V]') %>% 
+          stringr::regex(ignore_case = TRUE) %>% 
+          {stringr::str_detect(string = x$code, pattern = .)} %>% 
+          which() %>% 
+          {ifelse(length(.) == 0, NA_integer_, .)}
+      })) %>% 
+      filter(!is.na(.$start))
     
     if (nrow(x) == 0) return(sum_tpl(stringr::str_c(type, 'shk'), 'na'))
     
     x %>% 
-      dplyr::mutate(code = stringr::str_match(.$code, '\\Q(%):\\E\\s*(.+)')[, 2]) %>% 
+      dplyr::mutate(rows = purrr::map2(.x = .$data, .y = .$start, .f = function(x, start) {
+        x$code[start:nrow(x)] %>% 
+        {start + (which.max(stringr::str_detect(., '^\\s+\\D')[-1]) - 1)} %>% 
+        {seq(start, .)}})) %>%
+      dplyr::mutate(code = purrr::map2_chr(.x = .$data, .y = .$rows, 
+                                           ~stringr::str_c(.x$code[.y], collapse = ' '))) %>% 
+      dplyr::mutate(code = stringr::str_match(.$code, '\\Q(%)\\E:*\\s*(.+)')[, 2]) %>% 
       dplyr::mutate(code = stringr::str_split(.$code, '\\s+')) %>% 
       dplyr::mutate(value = purrr::map(.$code, ~round(as.numeric(.), digits = rounding)),
                     grouping = purrr::map(.$code, ~stringr::str_c(' [', 1:length(.), ']', sep = ''))) %>% 
@@ -682,26 +573,5 @@ sum_shk <- function(model, software, type, rounding) {
                     value = purrr::map_chr(.$data, ~stringr::str_c(.$value, collapse = ', '))) %>% 
       dplyr::select(dplyr::one_of('problem', 'subprob', 'label', 'value')) %>% 
       dplyr::ungroup()
-  }
-  if (software == 'nlmixr') {
-    shk <- 'na'
-    lab <- paste(type, 'shk', sep='')
-    if (("nlmixr.ui.saem" %in% class(file)) | ("nlmixr.ui.nlme" %in% class(file))) { 
-      if(type=="eps") {
-        shk <- paste(round((1 - sd(file$IWRES))*100, digits = rounding), "[1]", sep=" ")
-      }
-      if(type=="eta") {
-        omega <- diag(file$omega)
-        d <- as.data.frame(file[!duplicated(file$ID),])
-        d <- d[,names(d) %in% names(omega)]
-        eshr <- c()
-        for (i in 1:length(omega)) {
-          shr <- (1 - (sd(d[,i]) / sqrt(omega[i])))*100
-          eshr <- c(eshr, round(shr, 3))
-        }
-        shk <- paste(paste(round(eshr, digits = rounding), ' [', 1:length(eshr), ']', sep=''), collapse=', ')
-      }
-    }
-    dplyr::tibble(problem = 1, subprob = 0, label = lab, value = shk)
   }
 }
