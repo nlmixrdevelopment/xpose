@@ -160,13 +160,7 @@ sum_nlmixr_input_data <- function(model, software) {
 # Number of observations
 sum_nlmixr_nobs <- function(model, software, obj) {
   if (software == 'nlmixr') {
-    if ("nlmixr_nlme" %in% class(obj)) { 
-      nobs <- dim(obj$fitted)[1]
-    }
-    if (("nlmixr.ui.nlme" %in% class(obj)) | ("nlmixr.ui.saem" %in% class(obj))) { 
-      nobs <- nrow(obj)
-    }
-    dplyr::tibble(problem = 1, subprob = 0, label = 'nobs', value = as.character(nobs))
+      dplyr::tibble(problem = 1, subprob = 0, label = 'nobs', value = as.character(stats::nobs(obj)))
   }
 }
 
@@ -208,10 +202,10 @@ sum_nlmixr_subroutine <- function(model, software) {
 sum_nlmixr_runtime <- function(model, software, obj, rounding) {
   if (software == 'nlmixr') {
     rt <- 'na'
-    if ("nlmixr.ui.saem" %in% class(obj)) { 
+    if ("nlmixr.ui.saem" %in% class(obj)) {
       rt <- obj$time$saem
-    }    
-    if ("nlmixr.ui.nlme" %in% class(obj)) { 
+    }
+    if ("nlmixr.ui.nlme" %in% class(obj)) {
       rt <- obj$time$nlme
     }
     dplyr::tibble(problem = 1, subprob = 0, label = 'runtime', value = as.character(round(rt, rounding)))
@@ -222,12 +216,8 @@ sum_nlmixr_runtime <- function(model, software, obj, rounding) {
 sum_nlmixr_covtime <- function(model, software, obj, rounding) {
   if (software == 'nlmixr') {
     rt <- 'na'
-    if ("nlmixr.ui.saem" %in% class(obj)) { 
-      rt <- obj$time$covariance
-    }    
-    if ("nlmixr.ui.nlme" %in% class(obj)) { 
-      rt <- obj$time$covariance
-    }
+    ## Shouldn't change between methods
+    rt <- obj$time$covariance
     dplyr::tibble(problem = 1, subprob = 0, label = 'covtime', value = as.character(round(rt, rounding)))
   }
 }
@@ -286,9 +276,7 @@ sum_nlmixr_esampleseed <- function(model, software) {
 sum_nlmixr_ofv <- function(model, software, obj, rounding) {
   if (software == 'nlmixr') {
     ofv <- 'na'
-    if (("nlmixr.ui.saem" %in% class(obj)) | ("nlmixr.ui.nlme" %in% class(obj))) { 
-      ofv <- obj$objective
-    }    
+    ofv <- obj$objective ## Shouldn't change; OFV can be different for nlme. $objective = FOCEi objective.
     dplyr::tibble(problem = 1, subprob = 0, label = 'ofv', value = as.character(round(ofv, digits=rounding)))
   }
 }
@@ -296,14 +284,7 @@ sum_nlmixr_ofv <- function(model, software, obj, rounding) {
 # Estimation method or sim
 sum_nlmixr_method <- function(model, software, obj) {
   if (software == 'nlmixr') {
-    est <- 'na'
-    if ("nlmixr.ui.saem" %in% class(obj)) { 
-      est <- 'saem'
-    }    
-    if ("nlmixr.ui.nlme" %in% class(obj)) { 
-      est <- 'nlme'
-    }
-    dplyr::tibble(problem = 1, subprob = 0, label = 'method', value = est)
+     dplyr::tibble(problem = 1, subprob = 0, label = 'method', value = obj$est)
   }
 }
 
