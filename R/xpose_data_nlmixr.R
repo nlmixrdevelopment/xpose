@@ -50,7 +50,7 @@ xpose_data_nlmixr <- function(obj         = NULL,
     objok <- TRUE
   }
   
-  if (objok == FALSE) {
+  if ((objok == FALSE) | ("nlmixr_nlme" %in% class(obj))) {
     stop('Model type currently not supported by xpose.', call. = FALSE)
   }  
   

@@ -97,7 +97,7 @@ sum_nlmixr_file <- function(runname, software) {
 # Model run name
 sum_nlmixr_run <- function(runname, software) {
   if (software == 'nlmixr') {
-    dplyr::tibble(problem = 1, subprob = 0, label = 'run', value = runname)
+    dplyr::tibble(problem = 1, subprob = 0, label = 'run', value = obj$model.name)
   }
 }
 
@@ -118,14 +118,14 @@ sum_nlmixr_reference <- function(model, software) {
 # Run start time 
 sum_nlmixr_timestart <- function(model, software) {
   if (software == 'nlmixr') {
-    sum_tpl('timestart', 'not implemented')
+    dplyr::tibble(problem = 0, subprob = 0, label = 'timestart', value = obj$start.time)
   }
 }
 
 # Run stop time
 sum_nlmixr_timestop <- function(model, software) {
   if (software == 'nlmixr') {
-    sum_tpl('timestop', 'not implemented')
+    dplyr::tibble(problem = 0, subprob = 0, label = 'timestop', value = obj$stop.time)
   }
 }
 
@@ -153,7 +153,7 @@ sum_nlmixr_description <- function(model, software) {
 # Input data
 sum_nlmixr_input_data <- function(model, software) {
   if (software == 'nlmixr') {
-    dplyr::tibble(problem = 1, subprob = 0, label = 'data', value = 'na')
+    dplyr::tibble(problem = 1, subprob = 0, label = 'timestart', value = obj$data.name)
   }
 }
 
@@ -187,7 +187,7 @@ sum_nlmixr_nsim <- function(model, software) {
 # Simulation seed
 sum_nlmixr_simseed <- function(model, software) {
   if (software == 'nlmixr') {
-    sum_tpl('simseed', 'na')
+    dplyr::tibble(problem = 1, subprob = 0, label = 'seed', value = obj$seed)
   }
 }
 
